@@ -1,9 +1,12 @@
+"""
+CLI引数を解釈するutilです。
+"""
 from argparse import ArgumentParser
 from collections import OrderedDict
 from typing import Any, List, Dict, NamedTuple
 
 
-class Args(NamedTuple):
+class _Args(NamedTuple):
     args: List[Any]
     kwargs: Dict[str, Any]
 
@@ -26,10 +29,14 @@ class Command:
         self.name = name
         self.doc = doc
         self.__subcommands: Dict[str, Command] = OrderedDict()
-        self.__args: List[Args] = []
+        self.__args: List[_Args] = []
         self.__main_fn = None
 
     def start(self):
+        """
+        典型的な使い方のためのメソッド。
+        コマンドライン引数をparseしてコマンドの内容を実行します。
+        """
         parser = self.build()
         args = parser.parse_args()
         if hasattr(args, "handler"):
@@ -41,16 +48,24 @@ class Command:
         self.__main_fn = func
 
     def __rshift__(self, command: "Command"):
-        self.__subcommands[command.name] = command
+        self.__add_subcommand(command)
         return command
 
     def __lshift__(self, command: "Command"):
         return command >> self
 
     def option(self, *args, **kwargs):
-        self.__args.append(Args(args=args, kwargs=kwargs))
+        """
+        引数を指定します。
+        argparse.ArgumentParser.add_argumentと同じ引数です。
+        """
+        self.__args.append(_Args(args=args, kwargs=kwargs))
 
     def build(self, parser: ArgumentParser = None):
+        """
+        parserを作成します。
+        引数にparserを指定するとそれに追加します。
+        """
         if parser is None:
             parser = ArgumentParser(
                 prog=self.name, description=self.doc, allow_abbrev=False)
@@ -69,3 +84,6 @@ class Command:
     def __add_args(self, parser: ArgumentParser):
         for args, kwargs in self.__args:
             parser.add_argument(*args, **kwargs)
+
+    def __add_subcommand(self, command: "Command"):
+        self.__subcommands[command.name] = command
