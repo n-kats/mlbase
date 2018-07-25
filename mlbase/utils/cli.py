@@ -47,11 +47,11 @@ class Command:
     def __call__(self, func):
         self.__main_fn = func
 
-    def __rshift__(self, command: "Command"):
+    def __rshift__(self, command: "Command") -> "Command":
         self.__add_subcommand(command)
         return command
 
-    def __lshift__(self, command: "Command"):
+    def __lshift__(self, command: "Command") -> "Command":
         return command >> self
 
     def option(self, *args, **kwargs):
