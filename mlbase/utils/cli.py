@@ -3,12 +3,17 @@ CLI引数を解釈するutilです。
 """
 from argparse import ArgumentParser
 from collections import OrderedDict
-from typing import Any, List, Dict, NamedTuple
+from typing import Any, List, Dict, NamedTuple, Callable, Optional
 
 
 class _Args(NamedTuple):
     args: List[Any]
     kwargs: Dict[str, Any]
+
+
+class _Meta(NamedTuple):
+    parser: ArgumentParser
+    handler: Optional[Callable]
 
 
 class Command:
@@ -25,12 +30,19 @@ class Command:
             args.handler(args)
     """
 
-    def __init__(self, name, doc):
+    def __init__(self, name, doc, metakey="command_meta"):
         self.name = name
         self.doc = doc
+        self.__metakey = metakey
         self.__subcommands: Dict[str, Command] = OrderedDict()
         self.__args: List[_Args] = []
         self.__main_fn = None
+
+    def has_metakey(self, key):
+        """
+        メタキーが等しいことを確認する
+        """
+        return self.__metakey == key
 
     def start(self):
         """
@@ -39,10 +51,11 @@ class Command:
         """
         parser = self.build()
         args = parser.parse_args()
-        if hasattr(args, "handler"):
-            args.handler(args)
+        meta: _Meta = getattr(args, self.__metakey)
+        if meta.handler is None:
+            meta.parser.print_help()
         else:
-            parser.print_help()
+            meta.handler(args)
 
     def __call__(self, func):
         self.__main_fn = func
@@ -76,9 +89,10 @@ class Command:
             for cmd in self.__subcommands.values():
                 sub = subparsers.add_parser(cmd.name, description=cmd.doc)
                 cmd.build(sub)
-        elif self.__main_fn is not None:
-            parser.set_defaults(handler=self.__main_fn)
 
+        handler = None if self.__subcommands else self.__main_fn
+        meta = _Meta(parser=parser, handler=handler)
+        parser.set_defaults(**{self.__metakey: meta})
         return parser
 
     def __add_args(self, parser: ArgumentParser):
@@ -86,4 +100,5 @@ class Command:
             parser.add_argument(*args, **kwargs)
 
     def __add_subcommand(self, command: "Command"):
+        assert command.has_metakey(self.__metakey)
         self.__subcommands[command.name] = command
