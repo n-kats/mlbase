@@ -31,6 +31,12 @@ class Command:
     """
 
     def __init__(self, name, doc, metakey="command_meta"):
+        """
+        Args:
+            name(str): コマンド名
+            doc(str): コマンド説明
+            metakey(str): コマンドに付随する情報をパース結果につける際のプロパティ名。関連するコマンド間で同じものを指定する。
+        """
         self.name = name
         self.doc = doc
         self.__metakey = metakey
