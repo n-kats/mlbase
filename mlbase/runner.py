@@ -1,6 +1,6 @@
 """
->>> from event import event_manager as em
->>> from runner import StepManager
+>>> from mlbase.event import event_manager as em
+>>> from mlbase.runner import StepManager
 >>> @em.on("A")
 ... def _():
 ...   print("__A__")

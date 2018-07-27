@@ -21,13 +21,11 @@ class Command:
     >>> cmd = Command("sample", "例のコマンド")
     >>> foo = Command("foo", "fooコマンド") << cmd
     >>> foo.option("--input")
-    >>> @foo
-        def main(args):
-            print(args)
-    >>> parser = cmd.build()
-    >>> args = parser.parse_args()
-    >>> if hasattr(args, "handler"):
-            args.handler(args)
+    >>> foo(lambda args: print("foo"))
+    >>> (cmd / "foo") == foo
+    True
+    >>> x = cmd.build()
+
     """
 
     def __init__(self, name, doc, metakey="command_meta"):
@@ -73,6 +71,9 @@ class Command:
     def __lshift__(self, command: "Command") -> "Command":
         return command >> self
 
+    def __truediv__(self, command_name: str) -> Optional["Command"]:
+        return self.__get_subcommand(command_name)
+
     def option(self, *args, **kwargs):
         """
         引数を指定します。
@@ -107,4 +108,9 @@ class Command:
 
     def __add_subcommand(self, command: "Command"):
         assert command.has_metakey(self.__metakey)
+        assert command.name not in self.__subcommands, Exception(
+            f"コマンド{command.name}が重複しています")
         self.__subcommands[command.name] = command
+
+    def __get_subcommand(self, name: str) -> Optional["Command"]:
+        return self.__subcommands.get(name)

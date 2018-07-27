@@ -28,8 +28,8 @@ class _InputVariable(NamedTuple):
 class ModelInterface:
     """
     >>> model_if = ModelInterface("FooModeInput")
-    >>> mdoel_if.add("input_image", tf.float32, [None, None, None, 3], "image", Role.INPUT)
-    >>> model_if.get("input_image")
+    >>> model_if.add("input_image", tf.float32, [None, None, None, 3], "image", Role.INPUT)
+    >>> placeholder = model_if.get("input_image")
     """
 
     def __init__(self, description):

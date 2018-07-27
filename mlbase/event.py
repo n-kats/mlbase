@@ -1,5 +1,5 @@
 """
->>> from event import event_manager
+>>> from mlbase.event import event_manager
 >>> @event_manager.on("A")
 ... def _():
 ...   print('Hello')
