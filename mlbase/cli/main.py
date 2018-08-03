@@ -17,10 +17,13 @@ def build() -> Command:
 
     cmd >> Command("tree", "コマンドの一覧表示")(show_tree(cmd))
     # cmd >> Command("plugins")
+
     plugin_manager = PluginManger(cmd)
     plugin_manager.add_plugin_type("local", LocalPluginType)
 
     plugin_manager.load_yml("~/.config/mlbase/plugins.yml")
+    cmd >> Command("plugins", "プラグインに関するもの") >> Command(
+        "update", "プラグインの更新をします。")(lambda _: plugin_manager.update())
     return cmd
 
 

@@ -141,6 +141,7 @@ class PluginManger:
     def add_plugin_type(self, name, type_):
         assert name not in self.__plugin_types
         self.__plugin_types[name] = type_
+        self.__plugins = []
 
     def load_yml(self, path):
         for obj in yaml.load(open(pathlib.Path(path).expanduser())):
@@ -150,14 +151,19 @@ class PluginManger:
             if type_name not in self.__plugin_types:
                 raise Exception("unknown plugin_type")
 
-            plugin = self.get_plugin(type_name, args, kwargs)
-            plugin.load(self, self.__command)
+            plugin_type = self.get_plugin(type_name, args, kwargs)
+            plugin = plugin_type.load(self, self.__command)
+            self.__plugins.append(plugin)
 
     def get_plugin(self, type_name, args, kwargs):
         args = [] if args is None else args
         kwargs = {} if kwargs is None else kwargs
 
         return self.__plugin_types[type_name](*args, **kwargs)
+
+    def update(self):
+        for plugin in self.__plugin_types.values():
+            plugin.update()
 
 
 class PluginMangerWrapper:
@@ -173,6 +179,9 @@ class AbstractPlugin(ABC):
     def on_load(self, plugin_manager: PluginMangerWrapper, command: Command):
         pass
 
+    def update(self):
+        pass
+
 
 class AbstractPluginType(ABC):
     @abstractmethod
@@ -183,7 +192,6 @@ class AbstractPluginType(ABC):
 class LocalPluginType(AbstractPluginType):
     def __init__(self, path, plugin) -> None:
         path = pathlib.Path(path).expanduser()
-        path = "plugin_foo/plugin.py"
         module_spec = importlib.util.spec_from_file_location(
             f"LocalPluginType:{path}", path)
         module = importlib.util.module_from_spec(module_spec)
@@ -196,3 +204,43 @@ class LocalPluginType(AbstractPluginType):
         """
         plugin = self.__plugin_class()
         plugin.on_load(plugin_manager, command)
+        return plugin
+
+
+class GitPluginType(AbstractPluginType):
+    def __init__(
+            self,
+            path,
+            plugin,
+            repo,
+            tag=None,
+            commit=None,
+            local=False,
+    ) -> None:
+        assert not (tag is not None and commit is not None)
+        self.__path = path
+        self.__plugin = plugin
+        self.__repo = repo
+        self.__tag = tag
+        self.__commit = commit
+        self.__checkout = tag if tag is not None else commit
+        self.__local = local
+
+        cache_root = pathlib.Path("~/.cache/mlbase").expanduser()
+        self.__cache = cache_root / repo.split()[-1]
+
+    def load(self, plugin_manager: PluginMangerWrapper, command: Command):
+        local_plugin = LocalPluginType(
+            path=self.__cache / self.__path, plugin=self.__plugin)
+        plugin = local_plugin.load(plugin_manager, command)
+        return plugin
+
+    def update(self):
+        """
+        git clone {self.__repo}
+        git checkout {}
+        """
+        self.__cache.mkdir(parents=True, exist_ok=True)
+        import os
+        os.system(f"git clone {self.__repo} {self.__cache}")
+        os.system(f"git checkout {self.__checkout}")
