@@ -4,6 +4,9 @@ CLI引数を解釈するutilです。
 from argparse import ArgumentParser
 from collections import OrderedDict
 from typing import Any, List, Dict, NamedTuple, Callable, Optional
+from abc import ABC, abstractmethod
+
+import yaml
 
 
 class _Args(NamedTuple):
@@ -63,6 +66,7 @@ class Command:
 
     def __call__(self, func):
         self.__main_fn = func
+        return self
 
     def __rshift__(self, command: "Command") -> "Command":
         self.__add_subcommand(command)
@@ -102,6 +106,13 @@ class Command:
         parser.set_defaults(**{self.__metakey: meta})
         return parser
 
+    @property
+    def subcommands(self):
+        """
+        Return: subcommandのリスト
+        """
+        return list(self.__subcommands.values())
+
     def __add_args(self, parser: ArgumentParser):
         for args, kwargs in self.__args:
             parser.add_argument(*args, **kwargs)
@@ -114,3 +125,54 @@ class Command:
 
     def __get_subcommand(self, name: str) -> Optional["Command"]:
         return self.__subcommands.get(name)
+
+
+class PluginManger:
+    def __init__(self, command: Command) -> None:
+        """
+        Args:
+            command(Command): プラグインからサブコマンドを生やす用
+        """
+        self.__command = command
+        self.__plugin_types: Dict[str, "AbstractPlugin"] = {}
+
+    def add_plugin_type(self, name, type_):
+        assert name not in self.__plugin_types
+        self.__plugin_types[name] = type_
+
+    def load_yml(self, path):
+        for obj in yaml.load(open(path)):
+            type_name = obj.get("type")
+            args = obj.get("args")
+            kwargs = obj.get("kwargs")
+            if type_name not in self.__plugin_types:
+                raise Exception("unknown plugin_type")
+
+            plugin = self.get_plugin(type_name, args, kwargs)
+            plugin.on_load(self)
+
+    def get_plugin(self, type_name, args, kwargs):
+        return self.__plugin_types[type_name](*args, **kwargs)
+
+
+class AbstractPlugin(ABC):
+    @abstractmethod
+    def on_load(self, plugin_manager: PluginManger):
+        pass
+
+
+class AbstractPluginType(ABC):
+    @abstractmethod
+    def load(self, plugin_manager: PluginManger):
+        pass
+
+
+class LocalPluginType(AbstractPluginType):
+    def __init__(self, path: str = None) -> None:
+        self.path = path
+
+    def load(self):
+        """
+        AbstractPluginのインターフェイスを持つクラスをロードする
+        """
+        pass
