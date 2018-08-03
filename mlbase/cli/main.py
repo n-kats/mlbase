@@ -19,6 +19,8 @@ def build() -> Command:
     # cmd >> Command("plugins")
     plugin_manager = PluginManger(cmd)
     plugin_manager.add_plugin_type("local", LocalPluginType)
+
+    plugin_manager.load_yml("~/.config/mlbase/plugins.yml")
     return cmd
 
 

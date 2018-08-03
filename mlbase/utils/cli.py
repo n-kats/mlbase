@@ -5,6 +5,8 @@ from argparse import ArgumentParser
 from collections import OrderedDict
 from typing import Any, List, Dict, NamedTuple, Callable, Optional
 from abc import ABC, abstractmethod
+import importlib
+import pathlib
 
 import yaml
 
@@ -141,7 +143,7 @@ class PluginManger:
         self.__plugin_types[name] = type_
 
     def load_yml(self, path):
-        for obj in yaml.load(open(path)):
+        for obj in yaml.load(open(pathlib.Path(path).expanduser())):
             type_name = obj.get("type")
             args = obj.get("args")
             kwargs = obj.get("kwargs")
@@ -149,30 +151,48 @@ class PluginManger:
                 raise Exception("unknown plugin_type")
 
             plugin = self.get_plugin(type_name, args, kwargs)
-            plugin.on_load(self)
+            plugin.load(self, self.__command)
 
     def get_plugin(self, type_name, args, kwargs):
+        args = [] if args is None else args
+        kwargs = {} if kwargs is None else kwargs
+
         return self.__plugin_types[type_name](*args, **kwargs)
+
+
+class PluginMangerWrapper:
+    def __init__(self, plugin_manager: PluginManger) -> None:
+        self.__plugin_manager = plugin_manager
+
+    def add_plugin_type(self, name, type_):
+        self.__plugin_manager.add_plugin_type(name, type_)
 
 
 class AbstractPlugin(ABC):
     @abstractmethod
-    def on_load(self, plugin_manager: PluginManger):
+    def on_load(self, plugin_manager: PluginMangerWrapper, command: Command):
         pass
 
 
 class AbstractPluginType(ABC):
     @abstractmethod
-    def load(self, plugin_manager: PluginManger):
+    def load(self, plugin_manager: PluginMangerWrapper, command: Command):
         pass
 
 
 class LocalPluginType(AbstractPluginType):
-    def __init__(self, path: str = None) -> None:
-        self.path = path
+    def __init__(self, path, plugin) -> None:
+        path = pathlib.Path(path).expanduser()
+        path = "plugin_foo/plugin.py"
+        module_spec = importlib.util.spec_from_file_location(
+            f"LocalPluginType:{path}", path)
+        module = importlib.util.module_from_spec(module_spec)
+        module_spec.loader.exec_module(module)
+        self.__plugin_class = getattr(module, plugin)
 
-    def load(self):
+    def load(self, plugin_manager: PluginMangerWrapper, command: Command):
         """
         AbstractPluginのインターフェイスを持つクラスをロードする
         """
-        pass
+        plugin = self.__plugin_class()
+        plugin.on_load(plugin_manager, command)
