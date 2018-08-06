@@ -6,6 +6,18 @@ from pathlib import Path
 import tensorflow as tf
 
 
+def plugin_root(path):
+    """
+    パスを追加する。
+    プラグインで呼び出すことを推奨する。
+
+    >>> plugin_root(__file__)
+    """
+    path = Path(path)
+    path = path.parent if path.is_file else path
+    sys.path.append(str(path))
+
+
 def counting_iter(cnt):
     for i in range(1, cnt + 1):
         sys.stdout.write(f"{i}\r")
@@ -45,7 +57,8 @@ def get_tool_path(name="mlbase"):
         data=data,
         local=local,
         env=env)
-    print(path)
+    # print(path)
+    return path
 
 
 def iter_upto_root(path):
@@ -65,4 +78,15 @@ def find_dir_upto_root(name, cwd) -> Optional[Path]:
     return None
 
 
-get_tool_path()
+def print_tree(obj, output=sys.stdout):
+    def _print_tree(obj, depth):
+        indent = "  " * depth
+        for k, v in obj.items():
+            if isinstance(v, dict):
+                print(f"{indent}{k}:", file=output)
+                _print_tree(v, depth + 1)
+
+            else:
+                print(f"{indent}{k}: {v}", file=output)
+
+    _print_tree(obj, 0)

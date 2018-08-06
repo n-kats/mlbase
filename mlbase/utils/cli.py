@@ -153,7 +153,8 @@ class PluginManger:
 
             plugin_type = self.get_plugin(type_name, args, kwargs)
             plugin = plugin_type.load(self, self.__command)
-            self.__plugins.append(plugin)
+            if plugin is not None:
+                self.__plugins.append(plugin)
 
     def get_plugin(self, type_name, args, kwargs):
         args = [] if args is None else args
@@ -185,7 +186,8 @@ class AbstractPlugin(ABC):
 
 class AbstractPluginType(ABC):
     @abstractmethod
-    def load(self, plugin_manager: PluginMangerWrapper, command: Command):
+    def load(self, plugin_manager: PluginMangerWrapper,
+             command: Command) -> Optional[AbstractPlugin]:
         pass
 
 
@@ -195,19 +197,29 @@ class LocalPluginType(AbstractPluginType):
         module_spec = importlib.util.spec_from_file_location(
             f"LocalPluginType:{path}", path)
         module = importlib.util.module_from_spec(module_spec)
-        module_spec.loader.exec_module(module)
-        self.__plugin_class = getattr(module, plugin)
+        if module_spec.loader is not None:
+            module_spec.loader.exec_module(module)
+            self.__plugin_class = getattr(module, plugin)
+        else:
+            self.__plugin_class = None
 
     def load(self, plugin_manager: PluginMangerWrapper, command: Command):
         """
         AbstractPluginのインターフェイスを持つクラスをロードする
         """
+        if self.__plugin_class is None:
+            return
+
         plugin = self.__plugin_class()
         plugin.on_load(plugin_manager, command)
         return plugin
 
 
 class GitPluginType(AbstractPluginType):
+    """
+    実装途中
+    """
+
     def __init__(
             self,
             path,
