@@ -107,3 +107,5 @@ data/
 sandbox/
 
 tmp/
+*swp
+_*/
