@@ -1,0 +1,5 @@
+#! /bin/bash
+cd `dirname $0`
+cd ..
+
+find mlbase -type f -name "*.py" | xargs -I@ python -m doctest @ $*

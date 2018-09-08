@@ -2,8 +2,29 @@ import sys
 import os
 from typing import NamedTuple, List, Optional
 from pathlib import Path
+import importlib
 
-import tensorflow as tf
+_LAZY_MODULES = {}
+_LOADED_MODULES = {}
+
+
+class LazyModule:
+    def __init__(self, module):
+        _LAZY_MODULES[self] = module
+        _LOADED_MODULES[self] = None
+
+    def __getattribute__(self, name):
+        if _LOADED_MODULES[self] is None:
+            _LOADED_MODULES[self] = importlib.import_module(
+                _LAZY_MODULES[self])
+        return getattr(_LOADED_MODULES[self], name)
+
+
+def lazy(module):
+    return LazyModule(module)
+
+
+tf = lazy("tensorflow")
 
 
 def plugin_root(path):
@@ -24,7 +45,7 @@ def counting_iter(cnt):
         yield i
 
 
-def maybe_restore(sess: tf.Session, checkpoint: str, saver: tf.train.Saver):
+def maybe_restore(sess, checkpoint: str, saver):
     if checkpoint:
         saver.restore(sess, checkpoint)
     else:

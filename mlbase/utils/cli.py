@@ -93,8 +93,7 @@ class Command:
         引数にparserを指定するとそれに追加します。
         """
         if parser is None:
-            parser = ArgumentParser(
-                prog=self.name, description=self.doc, allow_abbrev=False)
+            parser = ArgumentParser(prog=self.name, description=self.doc, allow_abbrev=False)
         self.__add_args(parser)
 
         if self.__subcommands:
@@ -121,8 +120,7 @@ class Command:
 
     def __add_subcommand(self, command: "Command"):
         assert command.has_metakey(self.__metakey)
-        assert command.name not in self.__subcommands, Exception(
-            f"コマンド{command.name}が重複しています")
+        assert command.name not in self.__subcommands, Exception(f"コマンド{command.name}が重複しています")
         self.__subcommands[command.name] = command
 
     def __get_subcommand(self, name: str) -> Optional["Command"]:
@@ -144,7 +142,11 @@ class PluginManger:
         self.__plugins = []
 
     def load_yml(self, path):
-        for obj in yaml.load(open(pathlib.Path(path).expanduser())):
+        plugins = yaml.load(open(pathlib.Path(path).expanduser()))
+        if not plugins:
+            return
+
+        for obj in plugins:
             type_name = obj.get("type")
             args = obj.get("args")
             kwargs = obj.get("kwargs")
@@ -186,16 +188,14 @@ class AbstractPlugin(ABC):
 
 class AbstractPluginType(ABC):
     @abstractmethod
-    def load(self, plugin_manager: PluginMangerWrapper,
-             command: Command) -> Optional[AbstractPlugin]:
+    def load(self, plugin_manager: PluginMangerWrapper, command: Command) -> Optional[AbstractPlugin]:
         pass
 
 
 class LocalPluginType(AbstractPluginType):
     def __init__(self, path, plugin) -> None:
         path = pathlib.Path(path).expanduser()
-        module_spec = importlib.util.spec_from_file_location(
-            f"LocalPluginType:{path}", path)
+        module_spec = importlib.util.spec_from_file_location(f"LocalPluginType:{path}", path)
         module = importlib.util.module_from_spec(module_spec)
         if module_spec.loader is not None:
             module_spec.loader.exec_module(module)
@@ -221,13 +221,13 @@ class GitPluginType(AbstractPluginType):
     """
 
     def __init__(
-            self,
-            path,
-            plugin,
-            repo,
-            tag=None,
-            commit=None,
-            local=False,
+        self,
+        path,
+        plugin,
+        repo,
+        tag=None,
+        commit=None,
+        local=False,
     ) -> None:
         assert not (tag is not None and commit is not None)
         self.__path = path
@@ -242,8 +242,7 @@ class GitPluginType(AbstractPluginType):
         self.__cache = cache_root / repo.split()[-1]
 
     def load(self, plugin_manager: PluginMangerWrapper, command: Command):
-        local_plugin = LocalPluginType(
-            path=self.__cache / self.__path, plugin=self.__plugin)
+        local_plugin = LocalPluginType(path=self.__cache / self.__path, plugin=self.__plugin)
         plugin = local_plugin.load(plugin_manager, command)
         return plugin
 
