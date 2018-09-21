@@ -15,8 +15,7 @@ class LazyModule:
 
     def __getattribute__(self, name):
         if _LOADED_MODULES[self] is None:
-            _LOADED_MODULES[self] = importlib.import_module(
-                _LAZY_MODULES[self])
+            _LOADED_MODULES[self] = importlib.import_module(_LAZY_MODULES[self])
         return getattr(_LOADED_MODULES[self], name)
 
 
@@ -71,13 +70,7 @@ def get_tool_path(name="mlbase"):
     env_varname = f"{name.upper()}_PATH"
     env = os.getenv(env_varname)
 
-    path = ToolPath(
-        config=config,
-        plugins=[],
-        cache=cache,
-        data=data,
-        local=local,
-        env=env)
+    path = ToolPath(config=config, plugins=[], cache=cache, data=data, local=local, env=env)
     # print(path)
     return path
 

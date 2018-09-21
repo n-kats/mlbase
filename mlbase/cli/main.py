@@ -9,6 +9,7 @@ from mlbase.utils.cli import Command, PluginManger, LocalPluginType
 from mlbase.template.cifar.train import train_cifar_command
 from mlbase.dataset.rough_estimate import rough_estimate_command
 from mlbase.kaggle import kaggle_command
+from mlbase.arxiv2vec.cli import arxiv2vec_command
 
 DEFAULT_EDITOR = "vi"
 
@@ -22,6 +23,7 @@ def build() -> Command:
     cmd >> Command("research", "研究段階のもののコマンドです。") >> train_cifar_command()
 
     cmd >> kaggle_command()
+    cmd >> arxiv2vec_command()
 
     cmd >> Command("tree", "コマンドの一覧表示します。")(show_tree(cmd))
 
