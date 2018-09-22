@@ -75,7 +75,7 @@ def build(config: Optional[MLBaseConfig] = None) -> Command:
     plugin_manager = PluginManger(cmd)
     plugin_manager.add_plugin_type("local", LocalPluginType)
 
-    plugin_manager.load_yml("~/.config/mlbase/plugins.yml")
+    plugin_manager.load_yml(config.plugin_config)
     cmd >> Command("plugins", "プラグインに関するもの") >> Command("update", "プラグインの更新をします。")(lambda _: plugin_manager.update())
     return cmd
 
