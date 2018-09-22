@@ -1,6 +1,5 @@
-import sys
 import subprocess
-from typing import Dict, List, Optional
+from typing import Optional
 
 from mlbase.utils.cli import Command, PluginManger, LocalPluginType
 from mlbase.config import load_config, load_no_config, MLBaseConfig
@@ -9,6 +8,7 @@ from mlbase.template.cifar.train import train_cifar_command
 from mlbase.dataset.rough_estimate import rough_estimate_command
 from mlbase.kaggle import kaggle_command
 from mlbase.arxiv2vec.cli import arxiv2vec_command
+from mlbase.cli.tree import show_tree
 
 META_CONFIG = ".meta:running:config"
 META_NO_CONFIG = ".meta:running:no_config"
@@ -78,31 +78,3 @@ def build(config: Optional[MLBaseConfig] = None) -> Command:
     plugin_manager.load_yml(config.plugin_config)
     cmd >> Command("plugins", "プラグインに関するもの") >> Command("update", "プラグインの更新をします。")(lambda _: plugin_manager.update())
     return cmd
-
-
-def show_tree(root: Command):
-    class Tree:
-        def __init__(self, root: Command) -> None:
-            self.__root = root
-            self.__parent_to_children: Dict[Command, List[Command]] = {}
-
-        def __add(self, parent: Command, child: Command):
-            if parent in self.__parent_to_children:
-                self.__parent_to_children[parent] = []
-
-            self.__parent_to_children[parent].append(child)
-
-        def show(self, output=sys.stdout):
-            self.__show(self.__root, output=output, is_used=set())
-
-        def __show(self, node: Command, output, is_used: set, depth=0, sep="  "):
-            description = "上記参照" if node in is_used else node.doc
-            print(f"{sep * depth}{node.name}: {description}", file=output)
-            if node in is_used:
-                return
-            is_used.add(node)
-
-            for child in node.subcommands:
-                self.__show(child, depth=depth + 1, is_used=is_used, sep=sep, output=output)
-
-    return lambda _: Tree(root).show()
