@@ -2,7 +2,7 @@ from mlbase.arxiv2vec.model import Doc2VecModel
 from mlbase.arxiv2vec.preprocess import TeXMixedTextPreprocessor, SimplePreprocessor, AbsPreprocessor
 
 
-def run(args):
+def run(args, *_, **__):
     preprocesser = get_preprocessor(args.preprocess, args)
     model = get_model(args.model, preprocesser, args)
     train_docs = get_train_docs(args)

@@ -23,7 +23,7 @@ def dataset_command():
     cmd_json.option('--output', required=True)
 
     @cmd_json
-    def run_json_arxiv(args):
+    def run_json_arxiv(args, *_, **__):
         json_arxiv.run(args.input, args.output)
 
     cmd_merge_json = Command("merge_json", "jsonファイルの統合") << cmd
@@ -31,7 +31,7 @@ def dataset_command():
     cmd_merge_json.option('--output', required=True)
 
     @cmd_merge_json
-    def run_merge_json(args):
+    def run_merge_json(args, *_, **__):
         merge_json(args.input, args.output)
 
     return cmd
@@ -48,14 +48,14 @@ def infer_command():
     cmd_show_vector.option('input_texts', nargs="+")
 
     @cmd_show_vector
-    def run_show_vector(args):
+    def run_show_vector(args, *_, **__):
         model = infer.load_model(args.load_model)
         model.run_action("show_vector", model, args)
 
     cmd_compare = Command("compare", "比較") << cmd
 
     @cmd_compare
-    def run_compare(args):
+    def run_compare(args, *_, **__):
         model = infer.load_model(args.load_model)
         model.run_action("run_compare", model, args)
 
@@ -63,7 +63,7 @@ def infer_command():
     cmd_find_neighbors.option("--train_data")
 
     @cmd_find_neighbors
-    def run_find_neighbors(args):
+    def run_find_neighbors(args, *_, **__):
         model = infer.load_model(args.load_model)
         model.run_action("run_find_neighbors", model, args)
 
@@ -72,7 +72,7 @@ def infer_command():
     cmd_output_vectors.option("--input_texts", nargs="+")
 
     @cmd_output_vectors
-    def run_output_vectors(args):
+    def run_output_vectors(args, *_, **__):
         model = infer.load_model(args.load_model)
         model.run_action("run_output_vectors", model, args)
 

@@ -8,7 +8,7 @@ def kaggle_command():
     cmd.option("args", nargs="*")
 
     @cmd
-    def kaggle_main(options):
+    def kaggle_main(options, *_, **__):
         sub = subprocess.Popen(["kaggle", *options.args])
         sub.wait()
 

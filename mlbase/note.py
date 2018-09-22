@@ -37,7 +37,7 @@ def note_command():
     add_cmd.option("--edit_command", default="{editor} {entory_point}", help="編集コマンド")
 
     @add_cmd
-    def _(args):
+    def _(args, *_, **__):
         note = NoteObject(
             name=args.name,
             message=args.message,

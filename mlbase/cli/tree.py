@@ -29,4 +29,4 @@ class _Tree:
 
 
 def show_tree(root: Command):
-    return lambda _: _Tree(root).show()
+    return lambda *_, **__: _Tree(root).show()

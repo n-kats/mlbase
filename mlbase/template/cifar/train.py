@@ -157,7 +157,7 @@ def __apply_if_to_module(model_if, module):
     return train, score
 
 
-def run(args):
+def run(args, *_, **__):
     hp.open_hyper_param(args.param)
     dataset: DataSet = cache_pickle(cache_path=args.cache_path, args=[args.data_path], func=load)
 

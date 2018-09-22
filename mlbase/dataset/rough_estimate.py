@@ -10,9 +10,7 @@ def rough_estimate_command() -> Command:
     data_size_cmd.option("--count", type=int, required=True)
 
     @data_size_cmd
-    def _(args):
-        print(
-            args.width * args.height * args.channel * args.count // 1000000000,
-            "[GB]")
+    def _(args, *_, **__):
+        print(args.width * args.height * args.channel * args.count // 1000000000, "[GB]")
 
     return cmd

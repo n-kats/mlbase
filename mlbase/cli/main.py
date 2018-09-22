@@ -64,7 +64,7 @@ def build(config: Optional[MLBaseConfig] = None) -> Command:
     config_edit.option("target", choices=config_file_map.keys())
 
     @config_edit
-    def config_edit_main(args):
+    def config_edit_main(args, *_, **__):
         path = config_file_map[args.target]
         if not path.exists():
             path.parent.mkdir(exist_ok=True, parents=True)
@@ -76,5 +76,10 @@ def build(config: Optional[MLBaseConfig] = None) -> Command:
     plugin_manager.add_plugin_type("local", LocalPluginType)
 
     plugin_manager.load_yml(config.plugin_config)
-    cmd >> Command("plugins", "プラグインに関するもの") >> Command("update", "プラグインの更新をします。")(lambda _: plugin_manager.update())
+    update = cmd >> Command("plugins", "プラグインに関するもの") >> Command("update", "プラグインの更新をします。")
+
+    @update
+    def run_update(*_, **__):
+        plugin_manager.update()
+
     return cmd
