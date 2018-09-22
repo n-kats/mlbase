@@ -7,7 +7,7 @@ from enum import Flag, auto
 from collections import OrderedDict
 from typing import NamedTuple, Any, Dict
 
-import tensorflow as tf
+from mlbase.lazy import tensorflow as tf
 
 
 class Role(Flag):
@@ -40,11 +40,8 @@ class ModelInterface:
     def add(self, name: str, dtype, shape, description: str, role: Role):
         assert name not in self.__input_variables, Exception("名前が重複しています")
         self.__input_variables[name] = _InputVariable(
-            name=name,
-            dtype=dtype,
-            shape=shape,
-            description=description,
-            role=role)
+            name=name, dtype=dtype, shape=shape, description=description, role=role
+        )
         self.__input_ops[name] = tf.placeholder(dtype, shape, name)
 
     def get(self, name):

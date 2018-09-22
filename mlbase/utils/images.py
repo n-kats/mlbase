@@ -1,7 +1,7 @@
-import numpy as np
+from mlbase.lazy import numpy as np
 
 
-def tiled_image(images: np.ndarray):
+def tiled_image(images: "np.ndarray"):
     n, h, w, ch = images.shape
     sq = int(np.ceil(np.sqrt(n)))
     output = np.zeros([sq * h, sq * w, ch], dtype=np.uint8)

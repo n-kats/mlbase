@@ -1,6 +1,7 @@
 """
 CLI引数を解釈するutilです。
 """
+import os
 from argparse import ArgumentParser
 from collections import OrderedDict
 from typing import Any, List, Dict, NamedTuple, Callable, Optional
@@ -33,7 +34,7 @@ class Command:
 
     """
 
-    def __init__(self, name, doc, metakey="command_meta"):
+    def __init__(self, name, doc, metakey=".meta:command"):
         """
         Args:
             name(str): コマンド名
@@ -87,13 +88,14 @@ class Command:
         """
         self.__args.append(_Args(args=args, kwargs=kwargs))
 
-    def build(self, parser: ArgumentParser = None):
+    def build(self, parser: ArgumentParser = None, **kwargs):
         """
         parserを作成します。
         引数にparserを指定するとそれに追加します。
         """
         if parser is None:
-            parser = ArgumentParser(prog=self.name, description=self.doc, allow_abbrev=False)
+            parser = ArgumentParser(prog=self.name, description=self.doc, allow_abbrev=False, **kwargs)
+
         self.__add_args(parser)
 
         if self.__subcommands:
@@ -252,6 +254,5 @@ class GitPluginType(AbstractPluginType):
         git checkout {}
         """
         self.__cache.mkdir(parents=True, exist_ok=True)
-        import os
         os.system(f"git clone {self.__repo} {self.__cache}")
         os.system(f"git checkout {self.__checkout}")

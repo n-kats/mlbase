@@ -1,6 +1,5 @@
-import os
+import sys
 import subprocess
-import logging
 
 
 def info(s):
@@ -14,7 +13,7 @@ def failure(s):
 
 def error(s):
     # プログラムの失敗を記録する
-    print(f"[error] {s}")
+    print(f"[error] {s}", file=sys.stderr)
 
 
 def important(s):
