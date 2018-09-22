@@ -2,7 +2,8 @@
 CLI引数を解釈するutilです。
 """
 import os
-from argparse import ArgumentParser
+import sys
+from argparse import ArgumentParser, Namespace
 from collections import OrderedDict
 from typing import Any, List, Dict, NamedTuple, Callable, Optional
 from abc import ABC, abstractmethod
@@ -20,6 +21,14 @@ class _Args(NamedTuple):
 class _Meta(NamedTuple):
     parser: ArgumentParser
     handler: Optional[Callable]
+    parents: List[str]
+
+
+_METAKEY = ".meta:command"
+
+
+def get_meta(args: Namespace):
+    return getattr(args, _METAKEY)
 
 
 class Command:
@@ -27,14 +36,15 @@ class Command:
     >>> cmd = Command("sample", "例のコマンド")
     >>> foo = Command("foo", "fooコマンド") << cmd
     >>> foo.option("--input")
-    >>> foo(lambda args: print("foo"))
+    >>> foo(lambda args: print("foo")).name
+    'foo'
     >>> (cmd / "foo") == foo
     True
     >>> x = cmd.build()
 
     """
 
-    def __init__(self, name, doc, metakey=".meta:command"):
+    def __init__(self, name, doc, metakey=_METAKEY):
         """
         Args:
             name(str): コマンド名
@@ -54,13 +64,13 @@ class Command:
         """
         return self.__metakey == key
 
-    def start(self):
+    def start(self, argv=sys.argv[1:]):
         """
         典型的な使い方のためのメソッド。
         コマンドライン引数をparseしてコマンドの内容を実行します。
         """
         parser = self.build()
-        args = parser.parse_args()
+        args = parser.parse_args(argv)
         meta: _Meta = getattr(args, self.__metakey)
         if meta.handler is None:
             meta.parser.print_help()
@@ -88,24 +98,26 @@ class Command:
         """
         self.__args.append(_Args(args=args, kwargs=kwargs))
 
-    def build(self, parser: ArgumentParser = None, **kwargs):
+    def build(self, parser: ArgumentParser = None, commands=None, **kwargs):
         """
         parserを作成します。
         引数にparserを指定するとそれに追加します。
         """
+        parents = [] if commands is None else commands
+
         if parser is None:
             parser = ArgumentParser(prog=self.name, description=self.doc, allow_abbrev=False, **kwargs)
 
         self.__add_args(parser)
 
         if self.__subcommands:
-            subparsers = parser.add_subparsers(dest=self.name)
+            subparsers = parser.add_subparsers()
             for cmd in self.__subcommands.values():
                 sub = subparsers.add_parser(cmd.name, description=cmd.doc)
-                cmd.build(sub)
+                cmd.build(sub, [*parents, self.name])
 
         handler = None if self.__subcommands else self.__main_fn
-        meta = _Meta(parser=parser, handler=handler)
+        meta = _Meta(parser=parser, handler=handler, parents=parents)
         parser.set_defaults(**{self.__metakey: meta})
         return parser
 
