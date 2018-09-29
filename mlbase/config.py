@@ -17,6 +17,7 @@ from mlbase.logger import error
 
 DEFAULT_MLBASE_CONFIG = "~/.config/mlbase/mlbase.yml"
 DEFAULT_PLUGINS_CONFIG = "~/.config/mlbase/plugins.yml"
+DEFAULT_STORAGE = "~/.local/share/mlbase"
 DEFAULT_EDITOR = "vi"
 
 
@@ -31,6 +32,7 @@ class Resource(NamedTuple):
 
 class MLBaseConfig(NamedTuple):
     editor: List[str]
+    storage: Path
     mlbase_config: Path
     plugin_config: Path
 
@@ -48,9 +50,12 @@ class MLBaseConfig(NamedTuple):
         if not isinstance(editor, list):
             editor = [editor]
 
-        plugin_config = Path(config.get("plugin_config", DEFAULT_PLUGINS_CONFIG)).expanduser()
-
-        return cls(editor=editor, mlbase_config=path, plugin_config=plugin_config)
+        return cls(
+            editor=editor,
+            mlbase_config=path,
+            plugin_config=Path(config.get("plugin_config", DEFAULT_PLUGINS_CONFIG)).expanduser(),
+            storage=Path(config.get("storage", DEFAULT_STORAGE)).expanduser()
+        )
 
     @classmethod
     def get_default(cls, config=None) -> "MLBaseConfig":
@@ -60,7 +65,8 @@ class MLBaseConfig(NamedTuple):
         return cls(
             editor=[DEFAULT_EDITOR],
             mlbase_config=Path(config).expanduser(),
-            plugin_config=Path(DEFAULT_PLUGINS_CONFIG).expanduser()
+            plugin_config=Path(DEFAULT_PLUGINS_CONFIG).expanduser(),
+            storage=Path(DEFAULT_STORAGE).expanduser()
         )
 
 

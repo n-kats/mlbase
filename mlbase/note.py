@@ -1,7 +1,9 @@
 from pathlib import Path
 from typing import NamedTuple, List
+from subprocess import Popen
 
 from mlbase.utils.cli import Command
+from mlbase.config import MLBaseConfig
 
 
 class NoteObject(NamedTuple):
@@ -37,14 +39,14 @@ def note_command():
     add_cmd.option("--edit_command", default="{editor} {entory_point}", help="編集コマンド")
 
     @add_cmd
-    def _(args, *_, **__):
+    def _(args, config: MLBaseConfig, *_, **__):
         note = NoteObject(
             name=args.name,
             message=args.message,
             tags=args.tags,
-            storage=args.storage,
+            storage=args.storage or config.storage,
             entory_point=args.entory_point,
-            edit_command=args.edit_command
+            edit_command=args.edit_command.format(editor=config.editor)
         )
         __add_note(note)
 
@@ -53,7 +55,7 @@ def note_command():
     edit_cmd.option("name")
 
     @edit_cmd
-    def run_edit(args):
+    def run_edit(args, config: MLBaseConfig, *_, **__):
         pass
 
     # remove
@@ -61,7 +63,7 @@ def note_command():
     remove_cmd.option("name")
 
     @remove_cmd
-    def run_remove(args):
+    def run_remove(args, *_, **__):
         pass
 
     # show
@@ -69,7 +71,7 @@ def note_command():
     show_cmd.option("--tag")
 
     @show_cmd
-    def run_show(args):
+    def run_show(args, *_, **__):
         pass
 
     return cmd

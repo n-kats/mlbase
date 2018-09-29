@@ -64,18 +64,20 @@ class Command:
         """
         return self.__metakey == key
 
-    def start(self, argv=sys.argv[1:]):
+    def start(self, argv=None, *others, **kwargs):
         """
         典型的な使い方のためのメソッド。
         コマンドライン引数をparseしてコマンドの内容を実行します。
         """
+        if argv is None:
+            argv = sys.argv[1:]
         parser = self.build()
         args = parser.parse_args(argv)
         meta: _Meta = getattr(args, self.__metakey)
         if meta.handler is None:
             meta.parser.print_help()
         else:
-            meta.handler(args)
+            meta.handler(args, *others, **kwargs)
 
     def __call__(self, func):
         self.__main_fn = func

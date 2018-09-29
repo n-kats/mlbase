@@ -9,6 +9,7 @@ from mlbase.dataset.rough_estimate import rough_estimate_command
 from mlbase.kaggle import kaggle_command
 from mlbase.arxiv2vec.cli import arxiv2vec_command
 from mlbase.cli.tree import show_tree
+from mlbase.estimate import estimate_command
 
 META_CONFIG = ".meta:running:config"
 META_NO_CONFIG = ".meta:running:no_config"
@@ -17,7 +18,7 @@ META_NO_CONFIG = ".meta:running:no_config"
 def run():
     args, _ = __entry_command().build(add_help=False).parse_known_args()
     config = __load_config(args)
-    build(config).start()
+    build(config).start(config=config)
 
 
 def __load_config(args):
@@ -46,6 +47,7 @@ def build(config: Optional[MLBaseConfig] = None) -> Command:
     cmd >> note_command()
     cmd >> kaggle_command()
 
+    cmd >> estimate_command()
     cmd_dataset = Command("dataset", "データセットに関するコマンドです。") << cmd
     cmd_dataset >> rough_estimate_command()
 
