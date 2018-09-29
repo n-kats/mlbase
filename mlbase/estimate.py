@@ -18,7 +18,7 @@ def estimate_command():
         print(f"コア数: {args.num_core}")
         print(f"1TPUあたりコア数: {args.core_per_tpu}")
         print(f"TPU数: {num_tpu}")
-        print(f"TPU値段(ドル/h): {args.dollar_per_hour}")
+        print(f"1TPU値段(ドル/h): {args.dollar_per_hour}")
         print(f"1ドル(円): {args.yen_per_dollar}")
         print(f"単位時間値段(ドル/h): {dollar_per_hour}")
         print(f"単位時間値段(円/h): {yen_per_hour}")
