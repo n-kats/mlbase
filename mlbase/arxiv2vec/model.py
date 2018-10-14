@@ -22,7 +22,7 @@ class Doc2VecModel:
             get_tagged_document(self.__preprocessor.preprocess(txt),
                                 [i]) for i, txt in enumerate(train_docs)
         ]
-        model = get_doc2vec(size=50)
+        model = get_doc2vec(vector_size=50)
         model.build_vocab(train_corpus)
         model.train(train_corpus, total_examples=model.corpus_count, epochs=500)
         self.__model = model

@@ -50,22 +50,24 @@ def infer_command():
     @cmd_show_vector
     def run_show_vector(args, *_, **__):
         model = infer.load_model(args.load_model)
-        model.run_action("show_vector", model, args)
+        infer.run_action("show_vector", model, args)
 
     cmd_compare = Command("compare", "比較") << cmd
 
     @cmd_compare
     def run_compare(args, *_, **__):
         model = infer.load_model(args.load_model)
-        model.run_action("run_compare", model, args)
+        infer.run_action("compare", model, args)
 
     cmd_find_neighbors = Command("find_neighbors", "近傍探索") << cmd
     cmd_find_neighbors.option("--train_data")
+    cmd_find_neighbors.option("--load_model")
+    cmd_find_neighbors.option("--input_texts", nargs="+")
 
     @cmd_find_neighbors
     def run_find_neighbors(args, *_, **__):
         model = infer.load_model(args.load_model)
-        model.run_action("run_find_neighbors", model, args)
+        infer.run_action("find_neighbors", model, args)
 
     cmd_output_vectors = Command("output_vectors", "ベクトル保存") << cmd
     cmd_output_vectors.option("--load_model")
@@ -74,7 +76,7 @@ def infer_command():
     @cmd_output_vectors
     def run_output_vectors(args, *_, **__):
         model = infer.load_model(args.load_model)
-        model.run_action("run_output_vectors", model, args)
+        infer.run_action("output_vectors", model, args)
 
     return cmd
 
